@@ -13,6 +13,7 @@ yfcpu mycpu (
 );
 
 initial begin
+    $dumpvars;
 	clk = 1;
 	rst = 1;
 	#1 rst = 0;
