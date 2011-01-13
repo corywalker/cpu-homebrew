@@ -6,7 +6,7 @@
 module tb ();
 
 reg clk, rst;
-wire [7:0] pc;
+wire [15:0] pc;
 
 yfcpu mycpu (
 	clk, rst, pc

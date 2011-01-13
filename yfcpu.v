@@ -1,7 +1,7 @@
 module yfcpu(clk, rst, PC_out);
 
 // our cpu core parameters
-parameter im_size = 8;		// 2^n instruction word memory
+parameter im_size = 16;		// 2^n instruction word memory
 parameter rf_size = 4;		// 2^n word register file
 
 input clk;	// our system clock
@@ -29,8 +29,8 @@ parameter PC = 4'd15;
 
 // our memory core consisting of Instruction Memory, Register File and an ALU working (W) register
 reg [ opcode_size + (rf_size*3) -1 : 0 ] IMEM[0: 2 ** im_size -1 ] ;	// instruction memory
-reg [ 7:0 ] REGFILE[0: 2 ** rf_size -1 ];	// data memory
-reg [ 7:0 ] W;	// working (intermediate) register
+reg [ im_size-1 : 0 ] REGFILE[0: 2 ** rf_size -1 ];	// data memory
+reg [ im_size-1 : 0 ] W;	// working (intermediate) register
 
 // our cpu core registers
 reg [ opcode_size + (rf_size*3) -1 : 0 ] IR;	// instruction register
