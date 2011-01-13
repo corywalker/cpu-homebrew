@@ -1,11 +1,11 @@
-module yfcpu(clk, rst, PC);
+module yfcpu(clk, rst, PC_out);
 
 // our cpu core parameters
 parameter im_size = 8;		// 2^n instruction word memory
 parameter rf_size = 4;		// 2^n word register file
 
 input clk;	// our system clock
-output [ im_size-1 : 0 ] PC;	// our program counter
+output reg [ im_size-1 : 0 ] PC_out;	// our program counter
 input rst;	// reset signal
 
 // the cycle states of our cpu, i.e. the Control Unit states
@@ -24,6 +24,8 @@ parameter OR   = 4'b0110;
 parameter XOR  = 4'b0111;
 parameter HALT = 4'b0000;
 
+// mnemonic register names
+parameter PC = 4'd15;
 
 // our memory core consisting of Instruction Memory, Register File and an ALU working (W) register
 reg [ opcode_size + (rf_size*3) -1 : 0 ] IMEM[0: 2 ** im_size -1 ] ;	// instruction memory
@@ -31,7 +33,6 @@ reg [ 7:0 ] REGFILE[0: 2 ** rf_size -1 ];	// data memory
 reg [ 7:0 ] W;	// working (intermediate) register
 
 // our cpu core registers
-reg [ im_size-1 : 0 ] PC;			// program counter
 reg [ opcode_size + (rf_size*3) -1 : 0 ] IR;	// instruction register
 
 /* Control Unit registers
@@ -54,7 +55,7 @@ reg [ rf_size-1 : 0 ] RD;   // destination register
 
 // the initial cpu state bootstrap
 initial begin
-	PC = 0;
+	REGFILE[PC] = 0;
 	current_state = s_fetch;
 
 	// initialize our instruction memory with a test program
@@ -65,7 +66,8 @@ initial begin
 	IMEM[3] = { ADD , 4'd1, 4'd2, 4'd3 };   // add R1 + R2, into R3
 	IMEM[4] = { XOR , 4'd2, 4'd3, 4'd4 };   // or R2 & R3 into R4
 	IMEM[5] = { OR  , 4'd2, 4'd1, 4'd0 };   // or R2 & R1 into R0
-	IMEM[6] = { HALT, 12'd0 };  // end program
+	IMEM[6] = { LRI , 4'd0, 4'd0, 4'd15 };   // load immediate into R1
+	IMEM[7] = { HALT, 12'd0 };  // end program
 	end
 
 // at each clock cycle we sequence the Control Unit, or if rst is
@@ -74,7 +76,8 @@ always @ (clk, rst)
 begin
 	if(rst) begin
 		current_state = s_fetch;
-		PC = 0;
+		REGFILE[PC] = 0;
+		PC_out = 0;
 		end
 	else
 	   begin
@@ -82,13 +85,14 @@ begin
 		case( current_state )
 			s_fetch: begin
 			    // fetch instruction from instruction memory
-				IR = IMEM[ PC ];
+				IR = IMEM[ REGFILE[PC] ];
 				next_state = s_decode;
 				end
 
 			s_decode: begin
 			   // PC can be incremented as current instruction is loaded into IR
-				PC = PC + 1;
+				REGFILE[PC] = REGFILE[PC] + 1;
+				PC_out = REGFILE[PC];
 				next_state = s_execute;
 				
 				// decode the opcode and register operands
