@@ -1,10 +1,12 @@
-module yfcpu(clk, rst, PC_out);
+module yfcpu(clk, rst, P1_out, P2_in, PC_out);
 
 // our cpu core parameters
 parameter im_size = 16;		// 2^n instruction word memory
 parameter rf_size = 4;		// 2^n word register file
 
 input clk;	// our system clock
+output reg [ im_size-1 : 0 ] P1_out;	// our output port
+input [ im_size-1 : 0 ] P2_in;	// our input port
 output reg [ im_size-1 : 0 ] PC_out;	// our program counter
 input rst;	// reset signal
 
@@ -25,6 +27,8 @@ parameter XOR  = 4'b0111;
 parameter HALT = 4'b0000;
 
 // mnemonic register names
+parameter P1 = 4'd13;
+parameter P2 = 4'd14;
 parameter PC = 4'd15;
 
 // our memory core consisting of Instruction Memory, Register File and an ALU working (W) register
@@ -60,14 +64,20 @@ initial begin
 
 	// initialize our instruction memory with a test program
 	// IMEM[n] = { OPCODE, RA, RB, RD };
-	IMEM[0] = { LRI , 4'd0, 4'd0, 4'd0 };   // clear R1, R2, R3
-	IMEM[1] = { LRI , 4'd2, 4'd4, 4'd1 };   // load immediate into R1
-	IMEM[2] = { LRI , 4'd1, 4'd11, 4'd2 };  // load immediate into R2
-	IMEM[3] = { ADD , 4'd1, 4'd2, 4'd3 };   // add R1 + R2, into R3
-	IMEM[4] = { XOR , 4'd2, 4'd3, 4'd4 };   // or R2 & R3 into R4
-	IMEM[5] = { OR  , 4'd2, 4'd1, 4'd0 };   // or R2 & R1 into R0
-	IMEM[6] = { LRI , 4'd0, 4'd0, 4'd15 };   // load immediate into R1
-	IMEM[7] = { HALT, 12'd0 };  // end program
+	/*IMEM[0] = { LRI , 4'd0, 4'd1, 4'd0 };   // R0 = 0x0001
+	IMEM[1] = { LRI , 4'd0, 4'd0, 4'd13 };   // R0 = 0x0001
+	IMEM[2] = { ADD , 4'd0, 4'd13, 4'd13 };   // R1 = 0x0204
+	IMEM[3] = { LRI , 4'd0, 4'd2, 4'd15 };   // R0 = 0x0001*/
+	$readmemh ("counter.hex", IMEM);
+	//IMEM[3] = { LRI , 4'd0, 4'd2, 4'd15 };  // PC = 0x0000
+	/*IMEM[0] = { LRI , 4'd0, 4'd0, 4'd0 };   // R0 = 0x0000
+	IMEM[1] = { LRI , 4'd2, 4'd4, 4'd1 };   // R1 = 0x0204
+	IMEM[2] = { LRI , 4'd1, 4'd11, 4'd2 };  // R2 = 0x0111
+	IMEM[3] = { ADD , 4'd1, 4'd2, 4'd3 };   // R3 = R1 + R2
+	IMEM[4] = { XOR , 4'd2, 4'd3, 4'd4 };   // R4 = R2 ^ R3
+	IMEM[5] = { OR  , 4'd2, 4'd1, 4'd0 };   // R0 = R2 | R1
+	IMEM[6] = { LRI , 4'd0, 4'd0, 4'd15 };  // PC = 0x0000
+	IMEM[7] = { HALT, 12'd0 };  // HALT*/
 	end
 
 // at each clock cycle we sequence the Control Unit, or if rst is
@@ -77,11 +87,14 @@ begin
 	if(rst) begin
 		current_state = s_fetch;
 		REGFILE[PC] = 0;
+		P1_out = 0;
 		PC_out = 0;
 		end
 	else
 	   begin
 	   // sequence our Control Unit
+		P1_out = REGFILE[13];
+		REGFILE[14] = P2_in;
 		case( current_state )
 			s_fetch: begin
 			    // fetch instruction from instruction memory
