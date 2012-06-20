@@ -15,13 +15,12 @@ yfcpu mycpu (
 );
 
 initial begin
-    $dumpvars;
+	$dumpvars(1, mycpu);
 	clk = 1;
 	rst = 1;
 	p2 = 16'd0;
 	#1 rst = 0;
-	#1300 rst = 0;
-	$stop;
+	#1300 $finish;
 end
 
 always clk = #1 ~clk;

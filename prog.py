@@ -1,0 +1,5 @@
+lri(r0, 0x01)
+lri(r13, 0x00)
+label('addloop')
+add(r0, r13, r13)
+lri(r15, addloop)

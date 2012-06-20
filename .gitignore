@@ -1,2 +1,3 @@
-dump.vcd
-a.out
+*~
+*.o
+*.hex

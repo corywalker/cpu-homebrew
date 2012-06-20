@@ -68,7 +68,7 @@ initial begin
 	IMEM[1] = { LRI , 4'd0, 4'd0, 4'd13 };   // R0 = 0x0001
 	IMEM[2] = { ADD , 4'd0, 4'd13, 4'd13 };   // R1 = 0x0204
 	IMEM[3] = { LRI , 4'd0, 4'd2, 4'd15 };   // R0 = 0x0001*/
-	$readmemh ("counter.hex", IMEM);
+	$readmemh ("prog.hex", IMEM);
 	//IMEM[3] = { LRI , 4'd0, 4'd2, 4'd15 };  // PC = 0x0000
 	/*IMEM[0] = { LRI , 4'd0, 4'd0, 4'd0 };   // R0 = 0x0000
 	IMEM[1] = { LRI , 4'd2, 4'd4, 4'd1 };   // R1 = 0x0204
