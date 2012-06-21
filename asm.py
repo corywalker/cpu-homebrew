@@ -66,6 +66,34 @@ class ALU3(ASM):
 class add(ALU3):
     '''`add' instruction'''
     code = 4
+
+class sub(ALU3):
+    '''`add' instruction'''
+    code = 5
+
+class andd(ALU3):
+    '''`add' instruction'''
+    code = 6
+
+class orr(ALU3):
+    '''`add' instruction'''
+    code = 7
+
+class xor(ALU3):
+    '''`add' instruction'''
+    code = 8
+
+class nor(ALU3):
+    '''`add' instruction'''
+    code = 9
+
+class sll(ALU3):
+    '''`add' instruction'''
+    code = 10
+
+class srl(ALU3):
+    '''`add' instruction'''
+    code = 11
 '''
 class sub(ALU3):
     code = 1

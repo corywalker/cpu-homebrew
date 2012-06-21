@@ -20,13 +20,26 @@ parameter s_store = 2'b11;	// store the result back to memory
 parameter opcode_size = 4;		// size of opcode in bits
 
 // our mnemonic op codes
-parameter LRI  = 4'b0001;
-parameter ADD  = 4'b0100;
-parameter OR   = 4'b0110;
-parameter XOR  = 4'b0111;
 parameter HALT = 4'b0000;
+parameter LRI  = 4'b0001;
+parameter LOD  = 4'b0010;
+parameter STR  = 4'b0011;
+parameter ADD  = 4'b0100;
+parameter SUB  = 4'b0101;
+parameter AND  = 4'b0110;
+parameter OR   = 4'b0111;
+parameter XOR  = 4'b1000;
+parameter NOR  = 4'b1001;
+parameter SLL  = 4'b1010;
+parameter SRL  = 4'b1011;
+//parameter LRR  = 4'b1100;
+parameter CALL = 4'b1101;
+parameter LRRNZ = 4'b1110;
+parameter CALLNZ = 4'b1111;
 
 // mnemonic register names
+parameter LR = 4'd11;
+parameter SP = 4'd12;
 parameter P1 = 4'd13;
 parameter P2 = 4'd14;
 parameter PC = 4'd15;
@@ -118,33 +131,90 @@ begin
 			s_execute: begin
 			   // Execute ALU instruction, process the OPCODE
 				case (OPCODE)
+					HALT: begin
+					   // Halt execution, loop indefinately
+						next_state = s_execute;
+						end
+						
 					LRI: begin	
 					   // load register RD with immediate from RA:RB operands
 					   W = {RA, RB};
 					   next_state = s_store;
 					   end
+						/*
+					LOD: begin	
+					   // load register RD with immediate from RA:RB operands
+					   W = {RA, RB};
+					   next_state = s_store;
+					   end
+						
+					STR: begin	
+					   // load register RD with immediate from RA:RB operands
+					   W = {RA, RB};
+					   next_state = s_store;
+					   end*/
 					   
 					ADD: begin	
 					   // Add RA + RB
 						W = REGFILE[RA] + REGFILE[RB];
 						next_state = s_store;
 						end
+					   
+					SUB: begin	
+					   // Subtract RA - RB
+						W = REGFILE[RA] - REGFILE[RB];
+						next_state = s_store;
+						end
 						
-					OR: begin	
-					   // OR RA + RB
+					AND: begin
+						W = REGFILE[RA] & REGFILE[RB];
+						next_state = s_store;
+						end
+						
+					OR: begin
 						W = REGFILE[RA] | REGFILE[RB];
 						next_state = s_store;
 						end
 						
 					XOR: begin	
-					   // Exclusive OR RA ^ RB
 						W = REGFILE[RA] ^ REGFILE[RB];
 						next_state = s_store;
 						end
 						
-					HALT: begin
-					   // Halt execution, loop indefinately
-						next_state = s_execute;
+					NOR: begin
+						W = ~(REGFILE[RA] ^ REGFILE[RB]);
+						next_state = s_store;
+						end
+						
+					SLL: begin
+						W = REGFILE[RA] << RB;
+						next_state = s_store;
+						end
+						
+					SRL: begin
+						W = REGFILE[RA] >> RB;
+						next_state = s_store;
+						end
+						
+					CALL: begin
+					    REGFILE[LR] = REGFILE[PC];
+						REGFILE[PC] = {RA, RB};
+						next_state = s_store;
+						end
+						
+					LRRNZ: begin
+					    if (REGFILE[RB]) begin
+						    W = REGFILE[RA];
+						    next_state = s_store;
+						    end
+						end
+						
+					CALLNZ: begin
+					    if (REGFILE[RD]) begin
+					        REGFILE[LR] = REGFILE[PC];
+						    REGFILE[PC] = {RA, RB};
+						    next_state = s_store;
+						    end
 						end
 						
 					// catch all
